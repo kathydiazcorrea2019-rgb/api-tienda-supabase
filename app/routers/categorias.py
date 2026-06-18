@@ -18,6 +18,25 @@ def obtener_categorias():
     return respuesta.data
 
 
+# Obtener categoria por ID
+@router.get("/{id_categoria}")
+def obtener_categoria(id_categoria: int):
+
+    respuesta = supabase.table(
+        "categorias"
+    ).select("*").eq(
+        "id_categoria",
+        id_categoria
+    ).execute()
+
+    if not respuesta.data:
+        return {
+            "error": "Categoria no encontrada"
+        }
+
+    return respuesta.data
+
+
 # Crear categoria
 @router.post("/")
 def crear_categoria(categoria: Categoria):
@@ -32,14 +51,29 @@ def crear_categoria(categoria: Categoria):
     ).execute()
 
     return {
-        "mensaje": "Categoría creada correctamente",
+        "mensaje": "Categoria creada correctamente",
         "datos": respuesta.data
     }
 
 
 # Actualizar categoria
 @router.put("/{id_categoria}")
-def actualizar_categoria(id_categoria: int, categoria: Categoria):
+def actualizar_categoria(
+    id_categoria: int,
+    categoria: Categoria
+):
+
+    existe = supabase.table(
+        "categorias"
+    ).select("*").eq(
+        "id_categoria",
+        id_categoria
+    ).execute()
+
+    if not existe.data:
+        return {
+            "error": "Categoria no encontrada"
+        }
 
     respuesta = supabase.table(
         "categorias"
@@ -62,6 +96,18 @@ def actualizar_categoria(id_categoria: int, categoria: Categoria):
 # Eliminar categoria
 @router.delete("/{id_categoria}")
 def eliminar_categoria(id_categoria: int):
+
+    existe = supabase.table(
+        "categorias"
+    ).select("*").eq(
+        "id_categoria",
+        id_categoria
+    ).execute()
+
+    if not existe.data:
+        return {
+            "error": "Categoria no encontrada"
+        }
 
     respuesta = supabase.table(
         "categorias"
