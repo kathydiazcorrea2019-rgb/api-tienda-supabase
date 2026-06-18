@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.config.database import supabase
 from app.schemas.categoria import Categoria
 
@@ -7,7 +7,7 @@ router = APIRouter(
     tags=["Categorías"]
 )
 
-# Obtener todas las categorias
+
 @router.get("/")
 def obtener_categorias():
 
@@ -18,26 +18,6 @@ def obtener_categorias():
     return respuesta.data
 
 
-# Obtener categoria por ID
-@router.get("/{id_categoria}")
-def obtener_categoria(id_categoria: int):
-
-    respuesta = supabase.table(
-        "categorias"
-    ).select("*").eq(
-        "id_categoria",
-        id_categoria
-    ).execute()
-
-    if not respuesta.data:
-        return {
-            "error": "Categoria no encontrada"
-        }
-
-    return respuesta.data
-
-
-# Crear categoria
 @router.post("/")
 def crear_categoria(categoria: Categoria):
 
@@ -51,29 +31,26 @@ def crear_categoria(categoria: Categoria):
     ).execute()
 
     return {
-        "mensaje": "Categoria creada correctamente",
+        "mensaje": "CategorIa creada correctamente",
         "datos": respuesta.data
     }
 
 
-# Actualizar categoria
 @router.put("/{id_categoria}")
-def actualizar_categoria(
-    id_categoria: int,
-    categoria: Categoria
-):
+def actualizar_categoria(id_categoria: int, categoria: Categoria):
 
-    existe = supabase.table(
+    categoria_existente = supabase.table(
         "categorias"
     ).select("*").eq(
         "id_categoria",
         id_categoria
     ).execute()
 
-    if not existe.data:
-        return {
-            "error": "Categoria no encontrada"
-        }
+    if not categoria_existente.data:
+        raise HTTPException(
+            status_code=404,
+            detail="La categoría no existe"
+        )
 
     respuesta = supabase.table(
         "categorias"
@@ -93,21 +70,21 @@ def actualizar_categoria(
     }
 
 
-# Eliminar categoria
 @router.delete("/{id_categoria}")
 def eliminar_categoria(id_categoria: int):
 
-    existe = supabase.table(
+    categoria_existente = supabase.table(
         "categorias"
     ).select("*").eq(
         "id_categoria",
         id_categoria
     ).execute()
 
-    if not existe.data:
-        return {
-            "error": "Categoria no encontrada"
-        }
+    if not categoria_existente.data:
+        raise HTTPException(
+            status_code=404,
+            detail="La categoría no existe"
+        )
 
     respuesta = supabase.table(
         "categorias"

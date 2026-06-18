@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.config.database import supabase
 from app.schemas.producto import Producto
 
@@ -6,6 +6,7 @@ router = APIRouter(
     prefix="/productos",
     tags=["Productos"]
 )
+
 
 # Obtener productos
 @router.get("/")
@@ -28,6 +29,12 @@ def crear_producto(producto: Producto):
         "id_subcategoria",
         producto.id_subcategoria
     ).execute()
+
+    if not subcategoria.data:
+        raise HTTPException(
+            status_code=404,
+            detail="La subcategoría no existe"
+        )
 
     id_categoria = subcategoria.data[0]["id_categoria"]
 
@@ -73,12 +80,31 @@ def actualizar_producto(
     producto: Producto
 ):
 
+    producto_existente = supabase.table(
+        "productos"
+    ).select("*").eq(
+        "id_producto",
+        id_producto
+    ).execute()
+
+    if not producto_existente.data:
+        raise HTTPException(
+            status_code=404,
+            detail="El producto no existe"
+        )
+
     subcategoria = supabase.table(
         "subcategorias"
     ).select("*").eq(
         "id_subcategoria",
         producto.id_subcategoria
     ).execute()
+
+    if not subcategoria.data:
+        raise HTTPException(
+            status_code=404,
+            detail="La subcategoría no existe"
+        )
 
     id_categoria = subcategoria.data[0]["id_categoria"]
 
@@ -121,6 +147,19 @@ def actualizar_producto(
 # Eliminar producto
 @router.delete("/{id_producto}")
 def eliminar_producto(id_producto: int):
+
+    producto_existente = supabase.table(
+        "productos"
+    ).select("*").eq(
+        "id_producto",
+        id_producto
+    ).execute()
+
+    if not producto_existente.data:
+        raise HTTPException(
+            status_code=404,
+            detail="El producto no existe"
+        )
 
     respuesta = supabase.table(
         "productos"
